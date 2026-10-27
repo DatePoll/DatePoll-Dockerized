@@ -73,7 +73,7 @@ VERSION=latest
 FORCE=false
 SKIP_CONTAINER_RESTART=false
 
-while getopts "v:fsh" opt; do        
+while getopts "v:fsh" opt; do
     case "${opt}" in
         h)
             printf "${BOLD}DatePoll-Frontend install help${NC}:\n"
@@ -101,14 +101,14 @@ while getopts "v:fsh" opt; do
             then
                 VERSION=dev
             else
-                errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version" 
+                errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version"
             fi
         ;;
         \?)
-            errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version" 
+            errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version"
         ;;
         :)
-            errorAndExit "Option -v $OPTARG requires an argument. Examples: rc - Release candidate, dev - development version" 
+            errorAndExit "Option -v $OPTARG requires an argument. Examples: rc - Release candidate, dev - development version"
         ;;
     esac
 done
@@ -123,10 +123,10 @@ main () {
             errorAndExit "User aborted. Next time press ['y', 'Y', 'yes', 'Yes'] to continue"
         fi
     fi
-    
+
     # Check for sufficient permissions
     checkPermissions
-    
+
     # Check if required tools are installed
     requireTool "curl"
     requireTool "mkdir"
@@ -139,63 +139,47 @@ main () {
         errorAndExit "The Docker Compose plugin is required. Install it so 'docker compose version' succeeds."
     fi
     requireTool "git"
-    
-     # Determine operating system & architecture (and exit if not supported)
-    case $(uname -s) in
-        "Linux")
-        case "$(uname -m)" in
-        "x86_64")
-            ;;
-        *)
-            errorAndExit "Unsupported CPU architecture $(uname -m)"
-            ;;
-        esac
-        ;;
-        *)
-        errorAndExit "Unsupported operating system $(uname -s)"
-        ;;
-    esac
-    
+
     printf "Using version: ${BOLD}${VERSION}${NC}\n"
-    
+
     FRONTEND_DOWNLOAD_URL="https://releases.datepoll.org/DatePoll/Frontend-Releases/DatePoll-Frontend-${VERSION}.zip"
-    
+
     printf "${BLUE}Clearing${NC} tmp folder"
     (rm -rf "${INSTALL_TEMP_DIRECTORY}" && mkdir "${INSTALL_TEMP_DIRECTORY}") & spinner $!
     printf "${GREEN}Successfully${NC} cleared tmp folder [${GREEN}✓${NC}]\n"
-    
+
     # Download release
     printf "${BLUE}Downloading${NC} DatePoll-Frontend-${VERSION}.zip"
     curl -s -L ${FRONTEND_DOWNLOAD_URL} --output "${INSTALL_TEMP_DIRECTORY}/DatePoll-Frontend-${VERSION}.zip" & spinner $!
     printf "${GREEN}Successfully${NC} downloaded DatePoll-Frontend-${VERSION} [${GREEN}✓${NC}]\n"
-    
+
     # Unzip downloaded release
     printf "${BLUE}Unzipping${NC} DatePoll-Frontend-${VERSION}.zip... "
     unzip -qq "${INSTALL_TEMP_DIRECTORY}DatePoll-Frontend-${VERSION}.zip" -d "${INSTALL_TEMP_DIRECTORY}" & spinner $!
     printf "${GREEN}Successfully${NC} unzipped DatePoll-Frontend-${VERSION}.zip [${GREEN}✓${NC}]\n"
-    
+
     # Recreate frontend install folder
     printf "${BLUE}Clearing${NC} frontend install folder... "
     (rm -rf "$FRONTEND_INSTALL_DIRECTORY" && mkdir "$FRONTEND_INSTALL_DIRECTORY") & spinner $!
     printf "${GREEN}Successfully${NC} cleared frontend install folder [${GREEN}✓${NC}]\n"
-    
+
     # Move files into place
     printf "${BLUE}Moving${NC} files into place... "
     mv ./code/tmp/DatePoll-Frontend/* ./code/frontend/ & spinner $!
     printf "${GREEN}Successfully${NC} moved files into place [${GREEN}✓${NC}]\n"
-    
+
     # Set 777 permissions
     printf "${BLUE}Applying${NC} permissions... "
     chmod -R 777 "$FRONTEND_INSTALL_DIRECTORY" 2>/dev/null & spinner $!
     printf "${GREEN}Successfully${NC} applied permissions [${GREEN}✓${NC}]\n"
-    
+
     # Restart docker container network
     if [ $SKIP_CONTAINER_RESTART == false ]; then
       printf "${BLUE}Restarting${NC} docker containers..."
       (docker compose down 2>/dev/null && docker compose up -d 2>/dev/null) & spinner $!
       printf "${GREEN}Successfully${NC} restarted docker container [${GREEN}✓${NC}]\n"
     fi
-    
+
     _success=true
 
     printf "${GREEN}Finished${NC} the frontend update ${BOLD}flawlessly${NC}.\n"

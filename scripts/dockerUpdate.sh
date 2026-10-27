@@ -63,7 +63,7 @@ checkPermissions() {
 
 FORCE=false
 
-while getopts "v:fh" opt; do        
+while getopts "v:fh" opt; do
     case "${opt}" in
         h)
             printf "${BOLD}DatePoll-Dockerized update help${NC}:\n"
@@ -77,10 +77,10 @@ while getopts "v:fh" opt; do
             FORCE=true
         ;;
         \?)
-            errorAndExit "Unknown option" 
+            errorAndExit "Unknown option"
         ;;
         :)
-            errorAndExit "Unknown option" 
+            errorAndExit "Unknown option"
         ;;
     esac
 done
@@ -95,10 +95,10 @@ main () {
             errorAndExit "User aborted. Next time press ['y', 'Y', 'yes', 'Yes'] to continue"
         fi
     fi
-    
+
      # Check for sufficient permissions
     checkPermissions
-    
+
     # Check if required tools are installed
     requireTool "docker"
     if ! docker compose version > /dev/null 2>&1; then
@@ -107,53 +107,37 @@ main () {
     requireTool "git"
     requireTool "chmod"
     requireTool "echo"
-    
-    # Determine operating system & architecture (and exit if not supported)
-    case $(uname -s) in
-        "Linux")
-        case "$(uname -m)" in
-        "x86_64")
-            ;;
-        *)
-            errorAndExit "Unsupported CPU architecture $(uname -m)"
-            ;;
-        esac
-        ;;
-        *)
-        errorAndExit "Unsupported operating system $(uname -s)"
-        ;;
-    esac
-    
+
     if [ ! -f ./scripts/dockerRound ]; then
         printf "${BLUE}Creating${NC} dockerRound file"
         echo 0 > ./scripts/dockerRound & spinner $!
         printf "${GREEN}Successfully${NC} created dockerRound file [${GREEN}✓${NC}]\n"
 	fi
-	
+
 	file="./scripts/dockerRound"
 	dockerRound=$(cat "$file")
-	
+
     if [ $dockerRound == "0" ]
 	then
         printf "${BLUE}Pulling${NC} latest release from master"
         (git fetch origin && git reset --hard origin/master) & spinner $!
         printf "${GREEN}Successfully${NC} pulled latest release from master [${GREEN}✓${NC}]\n"
-        
+
         printf "${BLUE}Setting${NC} update scripts executable"
         chmod +x ./scripts/* & spinner $!
         printf "${GREEN}Successfully${NC} set update script executable [${GREEN}✓${NC}]\n"
-        
+
         printf "${BLUE}Setting${NC} dockerRound file to 1"
         echo 1 > ./scripts/dockerRound & spinner $!
         printf "${GREEN}Successfully${NC} set dockerRound file to 1 [${GREEN}✓${NC}]\n"
 
 		./scripts/dockerUpdate.sh -f
 	else
-	
+
         printf "${BLUE}Rebuilding${NC} docker container\n"
         docker compose down && docker compose build && docker compose up -d --remove-orphans
         printf "\n${GREEN}Successfully${NC} rebuilded docker container [${GREEN}✓${NC}]\n"
-        
+
         printf "${BLUE}Setting${NC} dockerRound file to 0"
         echo 0 > ./scripts/dockerRound & spinner $!
         printf "${GREEN}Successfully${NC} set dockerRound file to 0 [${GREEN}✓${NC}]\n"

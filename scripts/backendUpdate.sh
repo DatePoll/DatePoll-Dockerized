@@ -66,7 +66,7 @@ VERSION=latest
 FORCE=false
 SKIP_CONTAINER_RESTART=false
 
-while getopts "v:fsh" opt; do        
+while getopts "v:fsh" opt; do
     case "${opt}" in
         h)
             printf "${BOLD}DatePoll-Backend update help${NC}:\n"
@@ -94,14 +94,14 @@ while getopts "v:fsh" opt; do
             then
                 VERSION=dev
             else
-                errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version" 
+                errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version"
             fi
         ;;
         \?)
-            errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version" 
+            errorAndExit "Option -v $OPTARG argument incorrect. Please use: rc - Release candidate or dev - development version"
         ;;
         :)
-            errorAndExit "Option -v $OPTARG requires an argument. Examples: rc - Release candidate, dev - development version" 
+            errorAndExit "Option -v $OPTARG requires an argument. Examples: rc - Release candidate, dev - development version"
         ;;
     esac
 done
@@ -116,10 +116,10 @@ main () {
             errorAndExit "User aborted. Next time press ['y', 'Y', 'yes', 'Yes'] to continue"
         fi
     fi
-    
+
     # Check for sufficient permissions
     checkPermissions
-    
+
     # Check if required tools are installed
     requireTool "docker"
     if ! docker compose version > /dev/null 2>&1; then
@@ -127,25 +127,9 @@ main () {
     fi
     requireTool "git"
     requireTool "chmod"
-    
-     # Determine operating system & architecture (and exit if not supported)
-    case $(uname -s) in
-        "Linux")
-        case "$(uname -m)" in
-        "x86_64")
-            ;;
-        *)
-            errorAndExit "Unsupported CPU architecture $(uname -m)"
-            ;;
-        esac
-        ;;
-        *)
-        errorAndExit "Unsupported operating system $(uname -s)"
-        ;;
-    esac
-    
+
     printf "Using version: ${BOLD}${VERSION}${NC}\n"
-    
+
     cd ./code/backend/
 
     # Download release
@@ -156,9 +140,9 @@ main () {
       git reset --hard origin/master
     else
       git reset --hard origin/development
-    fi    
+    fi
     printf "\n${GREEN}Successfully${NC} pulled DatePoll-Backend-${VERSION} [${GREEN}✓${NC}]\n"
-    
+
     # Set 777 permissions
     printf "${BLUE}Applying${NC} permissions... "
     chmod -R 777 ./* 2>/dev/null & spinner $!
@@ -168,19 +152,19 @@ main () {
     printf "${BLUE}Updating${NC} composer libraries \n"
     docker compose exec datepoll-php php /usr/local/bin/composer install --ignore-platform-reqs
     printf "\n${GREEN}Successfully${NC} updated composer libraries [${GREEN}✓${NC}]\n"
-    
+
     # Run database migrations
     printf "${BLUE}Migrating${NC} database... \n"
     (docker compose exec datepoll-php php artisan migrate --force && docker compose exec datepoll-php php artisan update-datepoll-db)
     printf "\n${GREEN}Successfully${NC} run database migrations [${GREEN}✓${NC}]\n"
-       
+
     # Restart docker container network
     if [ $SKIP_CONTAINER_RESTART == false ]; then
       printf "${BLUE}Restarting${NC} docker containers..."
       (docker compose down 2>/dev/null && docker compose up -d 2>/dev/null) & spinner $!
       printf "${GREEN}Successfully${NC} restarted docker container [${GREEN}✓${NC}]\n"
     fi
-    
+
     _success=true
 
     printf "${GREEN}Finished${NC} the backend update ${BOLD}flawlessly${NC}.\n"
