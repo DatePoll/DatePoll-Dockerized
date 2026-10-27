@@ -12,3 +12,5 @@ redis/
 code/tmp/
 
 maintance/contact.json
+
+.idea

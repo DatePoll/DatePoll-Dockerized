@@ -1,4 +1,6 @@
-FROM php:8.0-fpm
+FROM composer:2.10.3@sha256:da624c2c705d54e2f5a9bb77a5dc6c7d091711433ebefd7035672e84c2010fee AS composer
+
+FROM php:8.3.36-fpm-bookworm@sha256:6b4641a875dd3e0f7551b2751e1f5909084856d18166af7fbb522ac230feb702
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -8,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfreetype6-dev \
     libmagickwand-dev \
     libzip-dev \
+    libsqlite3-dev \
     libonig-dev \
     libc-client-dev \
     libkrb5-dev \
@@ -17,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     jpegoptim optipng pngquant gifsicle && apt-get clean
 
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath opcache fileinfo iconv
+RUN docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring zip exif pcntl bcmath opcache fileinfo iconv
 
 RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl && docker-php-ext-install imap
 
@@ -28,7 +31,7 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY config/phpcustom.ini $PHP_INI_DIR/conf.d/
 
 # Installing composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 WORKDIR /backend
 
