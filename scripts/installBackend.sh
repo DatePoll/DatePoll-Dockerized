@@ -8,9 +8,14 @@ if [ "$(id -u)" -ne "0" ]; then
 fi
 echo -e "\e[32mOK\e[0m"
 
-for bin in docker-compose docker git; do
-  if [[ -z $(which ${bin}) ]]; then echo "Cannot find ${bin}, exiting..."; exit 1; fi
+for bin in docker git; do
+  if ! command -v "$bin" > /dev/null 2>&1; then echo "Cannot find ${bin}, exiting..."; exit 1; fi
 done
+
+if ! docker compose version > /dev/null 2>&1; then
+  echo "The Docker Compose plugin is required. Install it so 'docker compose version' succeeds." >&2
+  exit 1
+fi
 
 read -p "Are you sure you want to install / reinstall DatePoll-Backend? [y/N] " prompt
 if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]
@@ -25,12 +30,12 @@ then
 	echo "> Done"
 
 	echo "> Restarting docker container"
-	docker-compose down
-	docker-compose up -d
+	docker compose down
+	docker compose up -d
 	echo "> Done"
 
 	echo "> Installing composer libraries..."
-	docker-compose exec datepoll-php php /usr/local/bin/composer install --ignore-platform-reqs
+	docker compose exec datepoll-php php /usr/local/bin/composer install --ignore-platform-reqs
 	echo "> Done"
 
 	echo "> Copying .env file..."
@@ -40,26 +45,26 @@ then
 
 	echo "> Setting up .env file..."
 	cd ../../
-	docker-compose exec datepoll-php php artisan setup-datepoll
+	docker compose exec datepoll-php php artisan setup-datepoll
 	echo "> Done"
 
 	echo "> Migrating database..."
-	docker-compose exec datepoll-php php artisan migrate --force
+	docker compose exec datepoll-php php artisan migrate --force
 	## Execute update datepoll db command to set the current application db version into the database
-	docker-compose exec datepoll-php php artisan update-datepoll-db
+	docker compose exec datepoll-php php artisan update-datepoll-db
 	echo "> Done"
 
 	read -p "Do you want to add an default admin user? [y/N] " prompt
 	if [[ $prompt == "y" || $prompt == "Y" || $prompt == "yes" || $prompt == "Yes" ]]
 	then
-		docker-compose exec datepoll-php php artisan add-admin-user
+		docker compose exec datepoll-php php artisan add-admin-user
 	else
 	  	exit 0
 	fi
 
 	echo "> Restarting docker container"
-	docker-compose down
-	docker-compose up -d --remove-orphans
+	docker compose down
+	docker compose up -d --remove-orphans
 	echo "> Finished"
 
 else

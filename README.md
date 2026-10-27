@@ -17,11 +17,24 @@
 ## Development
 A complete development setup guide can be found [here](https://datepoll.org/docs/DatePoll/devAndBuilding).
 
+## Requirements
+
+Install Docker Engine and the Docker Compose CLI plugin. Verify the plugin with `docker compose version`. The installation and update scripts require root privileges, so the plugin must also be available to the user running those scripts.
+
+The Compose configuration remains `docker-compose.yml`, which `docker compose` discovers automatically. From this repository root:
+
+```sh
+docker compose up -d
+docker compose ps
+docker compose logs -f
+docker compose down
+```
+
 ## DatePoll Dockerized commands cheat sheet
 
-** MAKE SURE TO STAY IN THE ROOT DOCKER-COMPOSE PROJECT DIRECTORY**
+** MAKE SURE TO STAY IN THE ROOT DOCKER COMPOSE PROJECT DIRECTORY**
 
-### Docker-Compose installation update
+### Docker Compose installation update
 `./scripts/dockerUpdate.sh`
 
 ### Frontend update

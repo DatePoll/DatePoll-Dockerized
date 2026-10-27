@@ -100,8 +100,10 @@ main () {
     checkPermissions
     
     # Check if required tools are installed
-    requireTool "docker-compose"
     requireTool "docker"
+    if ! docker compose version > /dev/null 2>&1; then
+        errorAndExit "The Docker Compose plugin is required. Install it so 'docker compose version' succeeds."
+    fi
     requireTool "git"
     requireTool "chmod"
     requireTool "echo"
@@ -149,7 +151,7 @@ main () {
 	else
 	
         printf "${BLUE}Rebuilding${NC} docker container\n"
-        docker-compose down && sudo docker-compose build && docker-compose up -d --remove-orphans
+        docker compose down && docker compose build && docker compose up -d --remove-orphans
         printf "\n${GREEN}Successfully${NC} rebuilded docker container [${GREEN}✓${NC}]\n"
         
         printf "${BLUE}Setting${NC} dockerRound file to 0"

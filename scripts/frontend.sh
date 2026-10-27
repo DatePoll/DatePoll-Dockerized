@@ -134,8 +134,10 @@ main () {
     requireTool "mv"
     requireTool "rm"
     requireTool "unzip"
-    requireTool "docker-compose"
     requireTool "docker"
+    if ! docker compose version > /dev/null 2>&1; then
+        errorAndExit "The Docker Compose plugin is required. Install it so 'docker compose version' succeeds."
+    fi
     requireTool "git"
     
      # Determine operating system & architecture (and exit if not supported)
@@ -190,7 +192,7 @@ main () {
     # Restart docker container network
     if [ $SKIP_CONTAINER_RESTART == false ]; then
       printf "${BLUE}Restarting${NC} docker containers..."
-      (docker-compose down 2>/dev/null && docker-compose up -d 2>/dev/null) & spinner $!
+      (docker compose down 2>/dev/null && docker compose up -d 2>/dev/null) & spinner $!
       printf "${GREEN}Successfully${NC} restarted docker container [${GREEN}✓${NC}]\n"
     fi
     
