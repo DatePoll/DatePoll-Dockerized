@@ -46,7 +46,7 @@ docker compose down
 
 ## PHP runtime upgrade
 
-`phpDockerfile` uses PHP 8.3.36 and Composer 2.10.3, with both base images pinned by digest. IMAP, PDO MySQL, PDO SQLite, and the other backend extensions are built into the image. This supports the Lumen 11 upgrade in the separate DatePoll-Backend-PHP repository. The MySQL image is pinned to 8.3.0, matching the migrated change.
+`phpDockerfile` uses PHP 8.3.37 and Composer 2.10.3, with both base images pinned by digest. IMAP, PDO MySQL, PDO SQLite, and the other backend extensions are built into the image. This supports the Lumen 11 upgrade in the separate DatePoll-Backend-PHP repository. The MySQL image is pinned to 8.3.0, matching the migrated change.
 
 From this infrastructure repository root, rebuild the PHP web and worker images before deploying the updated backend:
 
